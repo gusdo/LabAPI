@@ -1,328 +1,202 @@
+const LOGIN_URL = 'http://localhost/LabAPI/login.php';
+const API_URL = 'http://localhost/LabAPI/index.php';
+
 window.onload = function () {
+    if (sessionStorage.getItem('jwt_token')) mostrarCRUD();
 
-    listarProductos();
-
+    const formularioLogin = document.getElementById('loginForm');
+    if (formularioLogin) {
+        formularioLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            ejecutarLogin();
+        });
+    }
 };
 
+async function peticionAPI(url, metodo = 'GET', cuerpo = null) {
+    const opciones = {
+        method: metodo,
+        headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('jwt_token')}`,
+            'Content-Type': 'application/json'
+        }
+    };
+    if (cuerpo) opciones.body = JSON.stringify(cuerpo);
+
+    try {
+        const response = await fetch(url, opciones);
+        return await response.json();
+    } catch (err) {
+        Swal.fire('Error', 'Problema de comunicación con el servidor.', 'error');
+        console.error(err);
+        return { success: false };
+    }
+}
+
+function obtenerDatosFormulario() {
+    return {
+        id: document.getElementById("id").value,
+        codigo: document.getElementById("codigo").value.trim(),
+        producto: document.getElementById("producto").value.trim(),
+        precio: document.getElementById("precio").value,
+        cantidad: document.getElementById("cantidad").value
+    };
+}
+
+async function ejecutarLogin() {
+    const usuario = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!usuario || !password) {
+        Swal.fire('Atención', 'Por favor, complete todos los campos.', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch(LOGIN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario, password })
+        });
+        const data = await response.json();
+
+        if (data.token) {
+            sessionStorage.setItem('jwt_token', data.token);
+            mostrarCRUD();
+            Swal.fire('¡Bienvenido!', 'Autenticación JWT correcta.', 'success');
+        } else {
+            Swal.fire('Error', data.error || 'Credenciales incorrectas', 'error');
+        }
+    } catch (err) {
+        Swal.fire('Error', 'Error en el servidor de autenticación.', 'error');
+    }
+}
+
+function mostrarCRUD() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('crudSection').style.display = 'block';
+    listarProductos();
+}
+
+function cerrarSesion() {
+    sessionStorage.removeItem('jwt_token');
+    document.getElementById('crudSection').style.display = 'none';
+    document.getElementById('loginSection').style.display = 'block';
+}
+
 function validarFormulario() {
-
     let errores = [];
+    const { codigo, producto, precio, cantidad } = obtenerDatosFormulario();
 
-    let codigo =
-        document.getElementById("codigo").value.trim();
-
-    let producto =
-        document.getElementById("producto").value.trim();
-
-    let precio =
-        document.getElementById("precio").value;
-
-    let cantidad =
-        document.getElementById("cantidad").value;
-
-    if (codigo === "") {
-        errores.push("Debe ingresar un código.");
-    }
-
-    if (producto === "") {
-        errores.push("Debe ingresar un producto.");
-    }
-
-    if (precio === "" || parseFloat(precio) <= 0) {
-        errores.push("El precio debe ser mayor que 0.");
-    }
-
-    if (cantidad === "" || parseInt(cantidad) < 0) {
-        errores.push("La cantidad no puede ser negativa.");
-    }
+    if (!codigo) errores.push("Debe ingresar un código.");
+    if (!producto) errores.push("Debe ingresar un producto.");
+    if (!precio || parseFloat(precio) <= 0) errores.push("El precio debe ser mayor que 0.");
+    if (!cantidad || parseInt(cantidad) < 0) errores.push("La cantidad no puede ser negativa.");
 
     return errores;
 }
 
-function guardar() {
-
-    let errores = validarFormulario();
-
+async function guardar() {
+    const errores = validarFormulario();
     if (errores.length > 0) {
-
-        Swal.fire({
-            icon: "error",
-            title: "Errores de validación",
-            html: errores.join("<br>")
-        });
-
+        Swal.fire({ icon: "error", title: "Errores de validación", html: errores.join("<br>") });
         return;
     }
 
-    let accion;
+    const payload = obtenerDatosFormulario();
+    const metodo = payload.id ? "PUT" : "POST";
 
-    switch (document.getElementById("id").value) {
-
-        case "":
-            accion = "Guardar";
-            break;
-
-        default:
-            accion = "Modificar";
-            break;
+    const data = await peticionAPI(API_URL, metodo, payload);
+    if (data.success) {
+        Swal.fire("Éxito", data.message || "Operación realizada", "success");
+        limpiar();
+        listarProductos();
+    } else {
+        Swal.fire("Error", data.errors ? data.errors.join("<br>") : data.message, "error");
     }
-
-    let datos = new FormData();
-
-    datos.append("accion", accion);
-    datos.append(
-        "id",
-        document.getElementById("id").value
-    );
-
-    datos.append(
-        "codigo",
-        document.getElementById("codigo").value
-    );
-
-    datos.append(
-        "producto",
-        document.getElementById("producto").value
-    );
-
-    datos.append(
-        "precio",
-        document.getElementById("precio").value
-    );
-
-    datos.append(
-        "cantidad",
-        document.getElementById("cantidad").value
-    );
-
-    fetch("../Controlador/productos.php", {
-        method: "POST",
-        body: datos
-    })
-        .then(response => response.json())
-        .then(data => {
-
-            if (data.success) {
-
-                Swal.fire({
-                    icon: "success",
-                    title: data.message
-                });
-
-                limpiar();
-                listarProductos();
-
-            } else {
-
-                Swal.fire({
-                    icon: "error",
-                    title: data.message,
-                    html: data.errors.join("<br>")
-                });
-
-            }
-
-        })
-        .catch(error => {
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error
-            });
-
-        });
 }
 
-function buscar() {
-
-    let codigo =
-        document.getElementById("codigo").value;
-
-    if (codigo === "") {
-
-        Swal.fire({
-            icon: "warning",
-            title: "Ingrese un código"
-        });
-
+async function buscar() {
+    const codigo = document.getElementById("codigo").value.trim();
+    if (!codigo) {
+        Swal.fire('Atención', 'Ingrese un código', 'warning');
         return;
     }
 
-    fetch(
-        "../Controlador/productos.php?accion=Buscar&codigo=" +
-        codigo
-    )
-        .then(response => response.json())
-        .then(data => {
-
-            let producto = data.data;
-
-            if (!producto) {
-
-                Swal.fire({
-                    icon: "warning",
-                    title: "Producto no encontrado"
-                });
-
-                return;
-            }
-
-            document.getElementById("id").value =
-                producto.id;
-
-            document.getElementById("codigo").value =
-                producto.codigo;
-
-            document.getElementById("producto").value =
-                producto.producto;
-
-            document.getElementById("precio").value =
-                producto.precio;
-
-            document.getElementById("cantidad").value =
-                producto.cantidad;
-
-        });
+    const data = await peticionAPI(`${API_URL}?codigo=${codigo}`);
+    if (data.success && data.data) {
+        const p = data.data;
+        cargarProducto(p.id, p.codigo, p.producto, p.precio, p.cantidad);
+        Swal.fire('Encontrado', p.producto, 'success');
+    } else {
+        Swal.fire('Aviso', 'Producto no encontrado', 'warning');
+    }
 }
 
-function listarProductos() {
+async function listarProductos() {
+    const data = await peticionAPI(API_URL);
+    let html = "";
 
-    fetch(
-        "../Controlador/productos.php?accion=Listar"
-    )
-        .then(response => response.json())
-        .then(data => {
-
-            let html = "";
-
-            data.data.forEach(producto => {
-
-                html += `
-                <tr>
-
-                    <td>${producto.id}</td>
-
-                    <td>${producto.codigo}</td>
-
-                    <td>${producto.producto}</td>
-
-                    <td>${producto.precio}</td>
-
-                    <td>${producto.cantidad}</td>
-
-                    <td>
-
-                        <button
-                        class="btn btn-warning btn-sm"
-                        onclick="cargarProducto(
-                            '${producto.id}',
-                            '${producto.codigo}',
-                            '${producto.producto}',
-                            '${producto.precio}',
-                            '${producto.cantidad}'
-                        )">
-
-                        Editar
-
-                        </button>
-
-                        <button
-                        class="btn btn-danger btn-sm"
-                        onclick="eliminar(${producto.id})">
-
-                        Eliminar
-
-                        </button>
-
-                    </td>
-
-                </tr>
-                `;
-            });
-
-            document.getElementById(
-                "tablaProductos"
-            ).innerHTML = html;
-
+    if (data.success && data.data) {
+        data.data.forEach(p => {
+            html += `
+            <tr>
+                <td>${p.id}</td>
+                <td><span class="badge bg-info text-dark">${p.codigo}</span></td>
+                <td>${p.producto}</td>
+                <td>$${parseFloat(p.precio).toFixed(2)}</td>
+                <td>${p.cantidad}</td>
+                <td class="text-center">
+                    <button class="btn btn-warning btn-sm me-2" onclick="cargarProducto('${p.id}', '${p.codigo}', '${p.producto}', '${p.precio}', '${p.cantidad}')">✏️ Editar</button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminar(${p.id})">🗑️ Eliminar</button>
+                </td>
+            </tr>`;
         });
+    }
+    document.getElementById("tablaProductos").innerHTML = html;
 }
 
 function eliminar(id) {
-
     Swal.fire({
         title: "¿Desea eliminar este producto?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Sí",
-        cancelButtonText: "No"
-    })
-        .then((result) => {
-
-            if (result.isConfirmed) {
-
-                let datos = new FormData();
-
-                datos.append("accion", "Eliminar");
-                datos.append("id", id);
-
-                fetch(
-                    "../Controlador/productos.php",
-                    {
-                        method: "POST",
-                        body: datos
-                    }
-                )
-                    .then(response => response.json())
-                    .then(data => {
-
-                        if (data.success) {
-
-                            Swal.fire({
-                                icon: "success",
-                                title: data.message
-                            });
-
-                            listarProductos();
-
-                        }
-
-                    });
-
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "No",
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const data = await peticionAPI(`${API_URL}?id=${id}`, "DELETE");
+            if (data.success) {
+                Swal.fire("Eliminado", data.message, "success");
+                listarProductos();
+                if (document.getElementById("id").value == id) limpiar();
             }
-
-        });
+        }
+    });
 }
 
-function cargarProducto(
-    id,
-    codigo,
-    producto,
-    precio,
-    cantidad
-) {
+function cargarProducto(id, codigo, producto, precio, cantidad) {
+    document.getElementById("id").value = id;
+    document.getElementById("codigo").value = codigo;
+    document.getElementById("producto").value = producto;
+    document.getElementById("precio").value = precio;
+    document.getElementById("cantidad").value = cantidad;
 
-    document.getElementById("id").value =
-        id;
-
-    document.getElementById("codigo").value =
-        codigo;
-
-    document.getElementById("producto").value =
-        producto;
-
-    document.getElementById("precio").value =
-        precio;
-
-    document.getElementById("cantidad").value =
-        cantidad;
+    const btn = document.getElementById('btnGuardar');
+    btn.textContent = "Actualizar";
+    btn.className = "btn btn-warning w-100";
 }
 
 function limpiar() {
-
     document.getElementById("id").value = "";
     document.getElementById("codigo").value = "";
     document.getElementById("producto").value = "";
     document.getElementById("precio").value = "";
     document.getElementById("cantidad").value = "";
+
+    const btn = document.getElementById('btnGuardar');
+    btn.textContent = "Guardar";
+    btn.className = "btn btn-success w-100";
 }
