@@ -275,6 +275,4 @@ La API RESTful unifica y estandariza todas sus salidas bajo una estructura JSON 
   "errors": "Colección indexada de strings que detalla las excepciones o fallos detectados en el servidor"
 }
 ```
-***
 
-```
