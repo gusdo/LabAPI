@@ -4,7 +4,7 @@
 **Institución:** Universidad Tecnológica de Panamá (UTP)  
 **Facultad:** Facultad de Ingeniería de Sistemas Computacionales (FISC)  
 **Asignatura:** Desarrollo de Software VII  
-**Estudiante:** Aaron Ortiz  
+**Integrantes:** Aaron Ortiz  y Gustavo Dominguez
 **Instructor:** Ing. Irina Fong  
 **Semestre:** I Semestre 2026  
 
