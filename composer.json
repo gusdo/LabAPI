@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
     "name": "aarom/lab-api-main",
+=======
+    "name": "aarom/lab-api",
+>>>>>>> 0e9b9c2c4065f0b96228ca43f0b4eb84bc5cce96
     "description": "Laboratorio de API CRUD con JWT y seguridad PHP",
     "type": "project",
     "require": {
