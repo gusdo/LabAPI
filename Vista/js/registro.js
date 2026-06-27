@@ -1,5 +1,4 @@
-const REGISTRO_URL =
-'http://localhost/LabAPI/Controlador/registro.php';
+const REGISTRO_URL ='http://localhost/LabAPI/Controlador/registroController.php';
 
 document.addEventListener('DOMContentLoaded', () => {
 

@@ -1,6 +1,6 @@
 <?php
 
-class DB{
+class Conexion{
 
     private $host = "localhost";
     private $dbname = "productosdb";

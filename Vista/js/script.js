@@ -1,4 +1,4 @@
-const LOGIN_URL = 'http://localhost/LabAPI/Controlador/login.php';
+const LOGIN_URL = 'http://localhost/LabAPI/Controlador/loginController.php';
 const API_URL = 'http://localhost/LabAPI/index.php';
 
 window.onload = function () {
@@ -71,8 +71,7 @@ async function ejecutarLogin() {
         Swal.fire('Error', 'Error en el servidor de autenticación.', 'error');
     }
 }
-const REGISTRO_URL = 'http://localhost/LabAPI/registro.php';
-
+const REGISTRO_URL ='http://localhost/LabAPI/Controlador/registroController.php';
 async function registrarUsuario() {
 
     const usuario = document.getElementById('usuario').value.trim();

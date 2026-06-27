@@ -1,12 +1,12 @@
 <?php
 
-require_once "conexion.php";
+require_once "Conexion.php";
 
 class Usuario
 {
     public static function existe($usuario)
     {
-        $db = new DB();
+        $db = new Conexion();
         $cn = $db->conectar();
 
         $stmt = $cn->prepare(
@@ -20,7 +20,7 @@ class Usuario
 
     public static function registrar($usuario, $passwordHash)
     {
-        $db = new DB();
+        $db = new Conexion();
         $cn = $db->conectar();
 
         $stmt = $cn->prepare(
@@ -36,7 +36,7 @@ class Usuario
 
     public static function buscar($usuario)
     {
-        $db = new DB();
+        $db = new Conexion();
         $cn = $db->conectar();
 
         $stmt = $cn->prepare(

@@ -12,8 +12,7 @@ class AuthService
 
     public function __construct()
     {
-        $this->secret_key = $_ENV['JWT_SECRET_KEY'] ?? "
-        Clave_Secreta_De_Aaron_Para_La_UTP_2026";
+        $this->secret_key = $_ENV['JWT_SECRET_KEY'];
         $this->encrypt_algorithm = 'HS256';
     }
 

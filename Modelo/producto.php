@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "Conexion.php";
 
 class Producto
 {
@@ -25,7 +25,7 @@ class Producto
     public function guardar()
     {
         try {
-            $db = new DB();
+            $db = new Conexion();
             $cn = $db->conectar();
 
             $sql = "INSERT INTO productos (codigo, producto, precio, cantidad) VALUES (?, ?, ?, ?)";
@@ -45,7 +45,7 @@ class Producto
     public function editar($id)
     {
         try {
-            $db = new DB();
+            $db = new Conexion();
             $cn = $db->conectar();
 
             $sql = "UPDATE productos SET codigo=?, producto=?, precio=?, cantidad=? WHERE id=?";
@@ -66,7 +66,7 @@ class Producto
     public static function eliminar($id)
     {
         try {
-            $db = new DB();
+            $db = new Conexion();
             $cn = $db->conectar();
 
             $stmt = $cn->prepare("DELETE FROM productos WHERE id=?");
@@ -78,7 +78,7 @@ class Producto
 
     public static function buscar($codigo)
     {
-        $db = new DB();
+        $db = new Conexion();
         $cn = $db->conectar();
 
         $stmt = $cn->prepare("SELECT * FROM productos WHERE codigo=?");
@@ -89,7 +89,7 @@ class Producto
 
     public static function listar()
     {
-        $db = new DB();
+        $db = new Conexion();
         $cn = $db->conectar();
 
         return $cn->query("SELECT * FROM productos")->fetchAll(PDO::FETCH_ASSOC);
@@ -97,7 +97,7 @@ class Producto
 
     public static function existeCodigo($codigo)
     {
-        $db = new DB();
+        $db = new Conexion();
         $cn = $db->conectar();
 
         $stmt = $cn->prepare("SELECT COUNT(*) total FROM productos WHERE codigo=?");
